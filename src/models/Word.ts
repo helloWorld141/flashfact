@@ -1,5 +1,6 @@
-interface Word {
+export interface Word {
     char: string;
     pinyin: string;
-    pronunciation: string;
+    pronunciation: number; // binary
+    meaning: string;
 };

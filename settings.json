@@ -1,0 +1,4 @@
+{
+    "db_location": "./data",
+    "db_filename": "words.db"
+}
