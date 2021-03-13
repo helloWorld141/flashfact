@@ -1,6 +1,7 @@
 import logo from './logo.svg';
 import './App.css';
 import { useState, useEffect } from 'react';
+import md5 from 'js-md5';
 
 function fetchData(setWordList) {
     fetch("http://localhost:3000/")
@@ -9,7 +10,6 @@ function fetchData(setWordList) {
         })
         .then(data => {
             data.forEach(element => {
-                if (element.pronunciation) console.log(element.pronunciation.data);
                 const buffer = element.pronunciation ? Buffer.from(element.pronunciation.data) : null;
                 element.pronunciation = buffer;
             });
@@ -20,17 +20,19 @@ function fetchData(setWordList) {
 
 function PlaySound(props) {
     const b64 = props.data.toString('base64');
+    // console.log(md5(b64));
     useEffect(() => {
-        const audioElement = document.getElementById('playsound');
+        let audioElement = document.getElementById('playsound');
+        console.log(audioElement);
+        audioElement.load();
         audioElement.play();
         return () => {
-            console.log(audioElement);
             audioElement.pause();
             audioElement.currentTime = 0;
         };
     });
     return (
-        <audio id='playsound'>
+        <audio id="playsound">
             <source src={"data:audio/x-wav;base64," + (b64)} ></source>
         </audio>
     );
@@ -47,8 +49,8 @@ function DisplayChar(props) {
     return (
         <div>
             <div className='Char'>{props.wordList[currentIdx]?.char}</div>
-            {props.wordList[0]?.pronunciation ?
-                <PlaySound data={props.wordList[0]?.pronunciation}></PlaySound>
+            {props.wordList[currentIdx]?.pronunciation ?
+                <PlaySound data={props.wordList[currentIdx]?.pronunciation}>{currentIdx}</PlaySound>
                 : ''}
         </div>
     )
