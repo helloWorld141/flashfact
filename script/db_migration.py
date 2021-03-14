@@ -79,22 +79,34 @@ def create_table(cursor, full_refresh=False):
         )
     """)
 
+def addColumn(cursor, colName, colType, defaultValue = ''):
+    query = f"alter table word add column {colName} {colType} default {defaultValue}"
+    cursor.execute(query)
+    pass
+
 if __name__ == '__main__':
     settings = json.loads(open('./settings.json').read())
     db_path = os.path.join(settings['db_location'], settings['db_filename'])
     connection = sqlite3.connect(db_path)
     cursor = connection.cursor()
     # create_table(cursor, full_refresh=True)
-    connection.commit()
+    # connection.commit()
     #### mock data ####
     # populateWordList(cursor)
-    connection.commit()
+    # connection.commit()
     #### check data ####
     cursor.execute("select * from word")
     print(cursor.fetchone())
 
     ### test populate sound ###
-    populatePronunciation(cursor)
+    # populatePronunciation(cursor)
+    # connection.commit()
+
+    ### add deck column ###
+    colName = 'deck'
+    colType = 'text'
+    defaultValue = 'hsk1'
+    addColumn(cursor, colName, colType, defaultValue)
     connection.commit()
 
     ### close connection ###

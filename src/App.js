@@ -1,21 +1,32 @@
-import logo from './logo.svg';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import { useState, useEffect } from 'react';
-import md5 from 'js-md5';
+import { Setting } from './components/Setting';
+import {
+    BrowserRouter as Router,
+    Switch,
+    Route,
+    NavLink,
+    useLocation
+} from "react-router-dom";
 
-function fetchData(setWordList) {
-    fetch("http://localhost:3000/")
-        .then(res => {
-            return res.json()
-        })
-        .then(data => {
-            data.forEach(element => {
-                const buffer = element.pronunciation ? Buffer.from(element.pronunciation.data) : null;
-                element.pronunciation = buffer;
-            });
-            setWordList(data);
-        })
-        .catch(err => console.log(err));
+function fetchData(setWordList, location) {
+    if (location.state) {
+        console.log(location.state);
+        const deck = location.state[0].deck;
+        fetch("http://localhost:3000/deck/" + deck)
+            .then(res => {
+                return res.json()
+            })
+            .then(data => {
+                data.forEach(element => {
+                    const buffer = element.pronunciation ? Buffer.from(element.pronunciation.data) : null;
+                    element.pronunciation = buffer;
+                });
+                setWordList(data);
+            })
+            .catch(err => console.log(err));
+    }
 }
 
 function PlaySound(props) {
@@ -23,7 +34,6 @@ function PlaySound(props) {
     // console.log(md5(b64));
     useEffect(() => {
         let audioElement = document.getElementById('playsound');
-        console.log(audioElement);
         audioElement.load();
         audioElement.play();
         return () => {
@@ -39,8 +49,9 @@ function PlaySound(props) {
 }
 function DisplayChar(props) {
     const [currentIdx, setIdx] = useState(0);
+    const l = props.wordList.length;
     useEffect(() => {
-        const interval = setInterval(() => setIdx(currentIdx => (currentIdx + 1) % props.wordList.length), 500);
+        const interval = setInterval(() => setIdx(currentIdx => (currentIdx + 1) % l), 1000);
         console.log(interval);
         return () => {
             clearInterval(interval);
@@ -56,13 +67,39 @@ function DisplayChar(props) {
     )
 }
 
-function App() {
+function Training() {
+    const location = useLocation();
+    console.log(location);
     const [wordList, setWordList] = useState([]);
-    useEffect(() => fetchData(setWordList), []);
+    useEffect(() => {
+        fetchData(setWordList, location);
+    }, []);
 
+    if (location.state) {
+        return (
+            <div className='App-header'>{wordList.length ? <DisplayChar wordList={wordList}></DisplayChar> : ''}</div>
+        );
+    } else {
+        return (
+            <div className='App-header'>
+                <p>Please select your <NavLink to="/">settings</NavLink> first!</p>
+            </div>
+        )
+    }
+}
+function App() {
     return (
-        <div className='App-header'>{wordList?.length ? <DisplayChar wordList={wordList}></DisplayChar> : ''}</div>
-    );
+        <Router>
+            <Switch>
+                <Route path='/training'>
+                    <Training />
+                </Route>
+                <Route path='/'>
+                    <Setting />
+                </Route>
+            </Switch>
+        </Router>
+    )
 }
 
 export default App;
